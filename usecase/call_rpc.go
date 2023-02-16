@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"io"
+	"os"
+	"os/signal"
 	"strings"
 	"sync"
 	"time"
@@ -328,6 +330,9 @@ func (m *dependencyManager) CallRPC(ctx context.Context, w io.Writer, rpcName st
 			cancel()
 			return errors.Wrap(err, "failed to enhance context with metadata")
 		}
+
+		ctx, cancelInterrupt := signal.NotifyContext(ctx, os.Interrupt)
+		defer cancelInterrupt()
 
 		stream, err := m.gRPCClient.NewServerStream(ctx, streamDesc, rpc.FullyQualifiedName)
 		if err != nil {
